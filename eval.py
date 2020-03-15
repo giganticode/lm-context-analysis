@@ -9,13 +9,13 @@ import torch.nn as nn
 from torch.autograd import Variable
 import _pickle as pickle
 
-import data
+from giganticode import data
 import model
 
 from utils import batchify, get_batch, repackage_hidden
 
 parser = argparse.ArgumentParser(description='Evaluate Language Model')
-parser.add_argument('--data', type=str, default='data/penn/',
+parser.add_argument('--data', type=str, default='/Users/hlib/dev/lm-context-analysis/giganticode',
                     help='location of the data corpus')
 parser.add_argument('--seed', type=int, default=1111,
                     help='random seed')
