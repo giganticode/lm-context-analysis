@@ -34,6 +34,8 @@ parser.add_argument('--max_seq_len', type=int, default=1000,
                     help='Maximum possible sequence length to make all experiments start at the same example i.e. skip the same number of tokens at the start')
 parser.add_argument('--logdir', type=str, default='./',
                     help='location to write per token log loss')
+parser.add_argument('--device', type=str, default='0',
+                    help='Cuda device id')
 parser.add_argument('--use_test', action='store_true', default=False,
                     help='Run on test set')
 args = parser.parse_args()
@@ -43,6 +45,7 @@ print(args)
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 if torch.cuda.is_available():
+    torch.cuda.set_device(args.device)
     if not args.cuda:
         print('WARNING: You have a CUDA device, so you should probably run without --cuda')
     else:
