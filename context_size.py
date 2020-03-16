@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-import data
+from giganticode import data
 import model
 
 from utils_context import batchify_context, get_context_batch
