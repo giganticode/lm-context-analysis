@@ -1,9 +1,14 @@
 import collections
 import os
 import pickle
-from typing import List
+from typing import List, Union, Optional
 
 import torch
+from langmodels.cuda_util import get_device
+from langmodels.file_util import get_all_files
+from tqdm import tqdm
+
+from codeprep.api.corpus import nosplit, PreprocessedCorpus
 
 
 class Vocab():
@@ -38,6 +43,23 @@ class Vocab():
         return cls(itos)
 
 
+def numericalize_corpus(path: str, vocab: Vocab,
+                        device: Union[int, str] = get_device(),
+                        output_file: Optional[str] = None) -> torch.Tensor:
+
+    all_files = [f for f in get_all_files(path, None)]
+
+    all_numbers = []
+    for file in tqdm(all_files):
+        with file.open('r') as f:
+            all_numbers.extend(vocab.numericalize(f.read().split(" ")))
+
+    if output_file:
+        with open(output_file, 'w') as f:
+            f.write(" ".join(map(lambda x: str(x), all_numbers)))
+    return torch.tensor(all_numbers, device=device, dtype=torch.int64)
+
+
 class Dictionary(object):
     def __init__(self, vocab: Vocab):
         self.vocab = vocab
@@ -55,22 +77,17 @@ class Dictionary(object):
 
 
 class Corpus(object):
+    def _prep_corpus(self, path: str) -> PreprocessedCorpus:
+        base_path, dir = os.path.split(path)
+        output_path = os.path.join(base_path, dir + '_prepped')
+        corpus = nosplit(path, no_com=True, no_str=True, no_unicode=True, no_spaces=True, calc_vocab=False, output_path=output_path)
+        return corpus
+
     def __init__(self, path: str):
         self.path = path
-        self.dictionary = Dictionary(Vocab.load(os.path.join(path, 'vocab.pkl')))
-
-    def _get_numericalized_tensor(self, file: str):
-        with open(os.path.join(self.path, 'numericalized', file), 'r') as f:
-            return torch.LongTensor(list(map(lambda x: int(x), f.read().split(" "))))
-
-    @property
-    def train(self):
-        return self._get_numericalized_tensor('train.txt')
-
-    @property
-    def test(self):
-        return self._get_numericalized_tensor('test.txt')
-
-    @property
-    def valid(self):
-        return self._get_numericalized_tensor('valid.txt')
+        corpus = self._prep_corpus(path)
+        vocab = Vocab(corpus.load_vocab().keys())
+        self.dictionary = Dictionary(vocab)
+        self.train = numericalize_corpus(os.path.join(corpus.path_to_prep_dataset, 'train'), vocab)
+        self.valid = numericalize_corpus(os.path.join(corpus.path_to_prep_dataset, 'valid'), vocab)
+        self.test = numericalize_corpus(os.path.join(corpus.path_to_prep_dataset, 'test'), vocab)
