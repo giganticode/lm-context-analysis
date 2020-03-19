@@ -94,7 +94,7 @@ class Corpus(object):
     def __init__(self, path: str):
         self.path = path
         corpus = self._prep_corpus(path)
-        vocab = Vocab(corpus.load_vocab().keys())
+        vocab = Vocab([k for k in corpus.load_vocab().keys()])
         self.dictionary = Dictionary(vocab)
         self.train = numericalize_corpus(os.path.join(corpus.path_to_prep_dataset, 'train'), vocab)
         self.valid = numericalize_corpus(os.path.join(corpus.path_to_prep_dataset, 'valid'), vocab)
