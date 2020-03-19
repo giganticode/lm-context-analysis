@@ -15,7 +15,7 @@ import model
 from utils import batchify, get_batch, repackage_hidden
 
 parser = argparse.ArgumentParser(description='Evaluate Language Model')
-parser.add_argument('--data', type=str, default='/Users/hlib/dev/lm-context-analysis/giganticode',
+parser.add_argument('--data', type=str, default='giganticode',
                     help='location of the data corpus')
 parser.add_argument('--seed', type=int, default=1111,
                     help='random seed')
