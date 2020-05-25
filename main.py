@@ -93,6 +93,12 @@ parser.add_argument('--beta', type=float, default=1,
                     help='beta slowness regularization applied on RNN activiation (beta = 0 means no regularization)')
 parser.add_argument('--wdecay', type=float, default=1.2e-6,
                     help='weight decay applied to all weights')
+parser.add_argument('--prep_function_name', type=str)
+parser.add_argument('--prep_function_param', type=str)
+parser.add_argument('--no_com', action='store_true', default=False)
+parser.add_argument('--no_str', action='store_true', default=False)
+parser.add_argument('--no_unicode', action='store_true', default=False)
+parser.add_argument('--no_spaces', action='store_true', default=False)
 args = parser.parse_args()
 
 # Set the random seed manually for reproducibility.
@@ -108,7 +114,7 @@ if torch.cuda.is_available():
 # Load data
 ###############################################################################
 
-corpus = data.Corpus(args.data)
+corpus = data.Corpus(args.data, args.prep_function_name, args.prep_function_param, no_com=args.no_com, no_str=args.no_str, no_unicode=args.no_unicode, no_spaces=args.no_spaces)
 
 eval_batch_size = 10
 test_batch_size = 1
