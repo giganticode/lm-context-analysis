@@ -89,7 +89,10 @@ class Corpus(object):
         base_path, dir = os.path.split(path)
         output_path = os.path.join(base_path, dir + '_prepped')
         split_func = getattr(codeprep_api, prep_function_name)
-        corpus = split_func(path, prep_function_param, no_com=no_com, no_str=no_str, no_unicode=no_unicode, no_spaces=no_spaces, calc_vocab=True, output_path=output_path)
+        if prep_function_param:
+            corpus = split_func(path, prep_function_param, no_com=no_com, no_str=no_str, no_unicode=no_unicode, no_spaces=no_spaces, calc_vocab=True, output_path=output_path)
+        else:
+            corpus = split_func(path, no_com=no_com, no_str=no_str, no_unicode=no_unicode, no_spaces=no_spaces, calc_vocab=True, output_path=output_path)
         return corpus
 
     def __init__(self, path: str, prep_function_name: str, prep_function_param: Optional[str], no_com: bool, no_str: bool, no_unicode: bool, no_spaces: bool):
