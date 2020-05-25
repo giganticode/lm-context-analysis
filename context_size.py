@@ -22,8 +22,8 @@ parser.add_argument('--data', type=str, default='data/penn/',
 parser.add_argument('--checkpoint', type=str, default='./model.pt',
                     help='model checkpoint to use')
 # Consistent with Language Modeling code from Merity et al.
-parser.add_argument('--cuda', action='store_false',
-                    help='Using this flag turns off CUDA, default value set to True')
+parser.add_argument('--cpu', action='store_true',
+                    help='Using this flag turns off CUDA')
 parser.add_argument('--seed', type=int, default=1111,
                     help='random seed')
 parser.add_argument('--batch_size', type=int, default=50, metavar='N',
@@ -53,7 +53,7 @@ np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 if torch.cuda.is_available():
     torch.cuda.set_device(args.device)
-    if not args.cuda:
+    if args.cpu:
         print('WARNING: You have a CUDA device, so you should probably run without --cuda')
     else:
         torch.cuda.manual_seed(args.seed)
@@ -63,10 +63,10 @@ start = time.time()
 model = torch.load(args.checkpoint)
 print('[%.1f s]' % (time.time() - start))
 
-if args.cuda:
-    model.cuda()
-else:
+if args.cpu:
     model.cpu()
+else:
+    model.cuda()
 
 corpus = data.Corpus(args.data, args.prep_function_name, args.prep_function_param, no_com=args.no_com, no_str=args.no_str, no_unicode=args.no_unicode, no_spaces=args.no_spaces)
 print('Built corpus')

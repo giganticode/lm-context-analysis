@@ -19,8 +19,7 @@ parser.add_argument('--data', type=str, default='giganticode',
                     help='location of the data corpus')
 parser.add_argument('--seed', type=int, default=1111,
                     help='random seed')
-parser.add_argument('--cuda', action='store_false',
-                    help='use CUDA')
+parser.add_argument('--cpu', action='store_true', help='use cpu')
 parser.add_argument('--start_token', type=int, default=1000,
                     help='token where loss calculation ends')
 parser.add_argument('--checkpoint', type=str, default='./model.pt',
@@ -42,7 +41,7 @@ print(args)
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 if torch.cuda.is_available():
-    if not args.cuda:
+    if args.cpu:
         print("WARNING: You have a CUDA device, so you should probably run with --cuda")
     else:
         torch.cuda.manual_seed(args.seed)
@@ -64,10 +63,10 @@ start = time.time()
 model = torch.load(args.checkpoint)
 print('[%.1f s]' % (time.time() - start))
 
-if args.cuda:
-    model.cuda()
-else:
+if args.cpu:
     model.cpu()
+else:
+    model.cuda()
 
 #criterion = nn.CrossEntropyLoss()
 
