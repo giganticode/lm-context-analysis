@@ -41,6 +41,8 @@ from torch.autograd import Variable
 from giganticode import data
 import model
 
+from dagshub import DAGsHubLogger
+
 from utils import batchify, get_batch, repackage_hidden
 
 parser = argparse.ArgumentParser(description='PyTorch PennTreeBank RNN/LSTM Language Model')
@@ -87,6 +89,7 @@ parser.add_argument('--log-interval', type=int, default=200, metavar='N',
 randomhash = ''.join(str(time.time()).split('.'))
 parser.add_argument('--save', type=str,  default=randomhash+'.pt',
                     help='path to save the final model')
+parser.add_argument('--output_metrics', type=str)
 parser.add_argument('--alpha', type=float, default=2,
                     help='alpha L2 regularization on RNN activation (alpha = 0 means no regularization)')
 parser.add_argument('--beta', type=float, default=1,
@@ -216,6 +219,7 @@ best_val_loss = []
 stored_loss = 100000000
 
 # At any point you can hit Ctrl + C to break out of training early.
+dagshub_logger = DAGsHubLogger(metrics_path=args.output_metrics, should_log_hparams=False)
 try:
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wdecay)
     for epoch in range(1, args.epochs+1):
@@ -245,11 +249,13 @@ try:
 
         else:
             val_loss = evaluate(val_data, eval_batch_size)
+            perplexity = math.exp(val_loss)
             print('-' * 89)
             print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
                     'valid ppl {:8.2f}'.format(epoch, (time.time() - epoch_start_time),
-                                               val_loss, math.exp(val_loss)))
+                                               val_loss, perplexity))
             print('-' * 89)
+            dagshub_logger.log_metrics({'valid_loss': val_loss, 'Perplexity': perplexity}, step_num=epoch-1)
 
             if val_loss < stored_loss:
                 with open(args.save, 'wb') as f:
@@ -277,3 +283,6 @@ print('=' * 89)
 print('| End of training | test loss {:5.2f} | test ppl {:8.2f}'.format(
     test_loss, math.exp(test_loss)))
 print('=' * 89)
+
+dagshub_logger.save()
+dagshub_logger.close()
